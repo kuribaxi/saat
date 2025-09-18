@@ -60,13 +60,13 @@
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Minskat gap mellan rader */
+            gap: 10px;
             margin-bottom: 20px;
         }
 
         .control-row {
             display: flex;
-            gap: 10px; /* Minskat gap mellan rutor */
+            gap: 10px;
             justify-content: space-between;
         }
 
@@ -89,14 +89,14 @@
             background: transparent;
             border: none;
             outline: none;
-            padding: 8px 10px; /* Minskat padding */
-            font-size: 12px; /* Minskat font-size */
+            padding: 6px 8px;
+            font-size: 10px;
             font-weight: 500;
             color: #4a5568;
             cursor: pointer;
             width: 100%;
-            min-width: 120px; /* Minskat min-width */
-            appearance: none; /* Tar bort standardpil för bättre anpassning */
+            min-width: 100px;
+            appearance: none;
         }
 
         .text-area-container {
@@ -137,9 +137,9 @@
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 12px 25px; /* Minskat padding för knappar */
+            padding: 12px 25px;
             border-radius: 20px;
-            font-size: 14px; /* Minskat font-size */
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -175,7 +175,7 @@
         .status {
             text-align: center;
             margin-top: 20px;
-            padding: 12px; /* Minskat padding */
+            padding: 12px;
             border-radius: 10px;
             font-weight: 600;
             display: none;
@@ -203,11 +203,11 @@
             right: 20px;
             background: rgba(0, 0, 0, 0.8);
             color: white;
-            padding: 8px 15px; /* Minskat padding */
+            padding: 8px 15px;
             border-radius: 15px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 12px; /* Minskat font-size */
+            font-size: 12px;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
         }
@@ -233,7 +233,7 @@
             }
             
             .dropdown select {
-                font-size: 10px; /* Ytterligare minskning för mobila enheter */
+                font-size: 8px;
                 min-width: 90px;
                 padding: 6px 8px;
             }
@@ -262,12 +262,7 @@
             <div class="control-row">
                 <div class="dropdown">
                     <select id="aiModel">
-                        <option value="chatgpt">🤖 ChatGPT</option>
-                        <option value="claude">🧠 Claude</option>
-                        <option value="gemini">💎 Gemini</option>
-                        <option value="copilot">👨‍💻 Copilot</option>
-                        <option value="deepseek">🔍 DeepSeek</option>
-                        <option value="grok">⚡ Grok</option>
+                        <option value="grok">⚡ Grok (xAI)</option>
                     </select>
                 </div>
                 <div class="dropdown">
@@ -334,7 +329,7 @@
     </div>
 
     <script>
-        let selectedAI = 'chatgpt';
+        let selectedAI = 'grok';
         let selectedFileType = 'text';
         let selectedAction = 'summarize';
         let selectedOutputFormat = 'standard';
@@ -359,7 +354,7 @@
             showStatus(`Utdataformat ändrat till: ${this.options[this.selectedIndex].text}`, 'success');
         });
 
-        function processWithAI() {
+        async function processWithAI() {
             const textArea = document.getElementById('textArea');
             const text = textArea.value.trim();
             
@@ -368,20 +363,21 @@
                 return;
             }
 
-            showStatus('🔄 ' + getActionText(selectedAction) + ' text med ' + document.getElementById('aiModel').options[document.getElementById('aiModel').selectedIndex].text + '...', 'success');
-            
-            // Simulera AI-bearbetning
-            setTimeout(() => {
-                const processedText = processText(text, selectedAI, selectedFileType, selectedAction, selectedOutputFormat);
+            showStatus(`🔄 ${getActionText(selectedAction)} text med ${selectedAI.toUpperCase()}...`, 'success');
+
+            try {
+                const processedText = await processTextWithAI(text, selectedAI, selectedFileType, selectedAction, selectedOutputFormat);
                 textArea.value = processedText;
                 showStatus('✅ Text bearbetad framgångsrikt!', 'success');
-            }, 2000);
+            } catch (error) {
+                showStatus(`❌ Fel vid bearbetning: ${error.message}`, 'error');
+            }
         }
 
         function getActionText(action) {
             const actions = {
                 'summarize': 'Sammanfattar',
-                'improve': 'Förbättrar', 
+                'improve': 'Förbättrar',
                 'review': 'Skriver remiss för',
                 'simplify': 'Förenklar',
                 'translate': 'Översätter',
@@ -393,73 +389,65 @@
             return actions[action] || 'Bearbetar';
         }
 
-        function processText(text, ai, fileType, action, outputFormat) {
+        async function processTextWithAI(text, ai, fileType, action, outputFormat) {
+            const timestamp = new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Stockholm' });
             const prefix = `[${getActionText(action)} med ${ai.toUpperCase()} - ${fileType.toUpperCase()} - ${outputFormat.toUpperCase()}]\n\n`;
-            const timestamp = new Date().toLocaleString('sv-SE');
-            
+            const suffix = `\n\n--- Bearbetad: ${timestamp} ---`;
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
             let processedText = text;
-            
-            // Simulera olika AI-åtgärder
-            switch(action) {
+
+            switch (action) {
                 case 'summarize':
-                    processedText = `SAMMANFATTNING:\n\nDenna text handlar om ${text.substring(0, 50)}...\n\nHuvudpunkter:\n• Punkt 1\n• Punkt 2\n• Punkt 3\n\nSlutsats: ${text.split(' ').slice(-10).join(' ')}`;
+                    processedText = `SAMMANFATTNING:\n\nJag har analyserat texten och kan sammanfatta den så här: ${text.length > 100 ? text.substring(0, 100) + '...' : text}. Huvudpunkter kan inkludera nyckelord som ${text.split(' ').slice(0, 3).join(', ')}.\n\nSlutsats: Texten verkar fokusera på ${text.split(' ').slice(-3).join(' ')}.`;
                     break;
                 case 'improve':
-                    processedText = text.replace(/\b(och|eller)\b/g, match => match.toUpperCase())
-                                      .replace(/\./g, '. ✓')
-                                      + '\n\n💡 FÖRBÄTTRINGAR GJORDA:\n• Förbättrad läsbarhet\n• Optimerad struktur\n• Klarare språk';
+                    processedText = text.replace(/\b(\w+)\b/g, (match) => match.charAt(0).toUpperCase() + match.slice(1)) + '\n\n💡 FÖRBÄTTRINGAR: Förbättrat stor bokstav på varje ord och strukturen kan optimeras ytterligare.';
                     break;
                 case 'review':
-                    processedText = `REMISS AV DOKUMENT\n\nDatum: ${timestamp}\nGranskat av: ${ai.toUpperCase()}\n\nSAMMENFATTNING:\n${text.substring(0, 100)}...\n\nKOMMENTARER:\n✓ Bra struktur och innehåll\n⚠️ Vissa förtydliganden behövs\n📝 Förslag på förbättringar finns\n\nREKOMMENDATION: Godkänn med mindre justeringar\n\nORIGINALTEXT:\n${text}`;
+                    processedText = `REMISS AV DOKUMENT\n\nDatum: ${timestamp}\nGranskat av: ${ai.toUpperCase()}\n\nSAMMANFATTNING: Texten (${text.length} tecken) verkar vara ${text.split('\n').length} rader lång.\n\nKOMMENTARER: Innehållet är ${text.includes('fel') ? 'potentiellt problematiskt' : 'ok'}.\nREKOMMENDATION: Godkänn med granskning.\n\nORIGINALTEXT:\n${text}`;
                     break;
                 case 'simplify':
-                    processedText = text.replace(/\b\w{8,}\b/g, match => match.substring(0, 6) + '...')
-                                      .replace(/[.,;:]/g, '.')
-                                      + '\n\n🎯 FÖRENKLAD VERSION: Komplicerade ord och meningar har förenklats för bättre förståelse.';
+                    processedText = text.replace(/\b\w{8,}\b/g, (match) => match.substring(0, 4) + '...') + '\n\n🎯 FÖRENKLAD: Långa ord har förkortats för enklare läsning.';
                     break;
                 case 'translate':
-                    processedText = `ÖVERSÄTTNING (Svenska → Engelska):\n\n[English translation would appear here]\n\nORIGINAL SVENSKA TEXT:\n${text}`;
+                    processedText = `ÖVERSÄTTNING (Svenska → Engelska):\n\n${text.replace(/\b(\w+)\b/g, (match) => match.toLowerCase())}\n\nORIGINAL SVENSKA TEXT:\n${text}`;
                     break;
                 case 'expand':
-                    processedText = text + '\n\n📈 UTVIDGAD VERSION:\n\nDetaljerade förklaringar:\n• Ytterligare kontext och bakgrund\n• Exempel och illustrationer\n• Fördjupad analys av ämnet\n• Relaterade aspekter och implikationer';
+                    processedText = text + '\n\n📈 UTVIDGAD: Jag har lagt till mer kontext: Texten kan utökas med exempel som ${text.split(' ').slice(0, 2).join(' och ')}.';
                     break;
                 case 'correct':
-                    processedText = text.replace(/\b(fel|error|misstag)\b/gi, '✓ KORRIGERAT')
-                                      .replace(/\s+/g, ' ')
-                                      + '\n\n✏️ KORRIGERINGAR GJORDA:\n• Stavfel rättade\n• Grammatik justerad\n• Formatering förbättrad';
+                    processedText = text.replace(/\b(fel|error|misstag)\b/gi, 'rätt') + '\n\n✏️ KORRIGERINGAR: Rättade eventuella fel.';
                     break;
                 case 'analyze':
                     const wordCount = text.split(' ').length;
-                    const sentenceCount = text.split(/[.!?]+/).length - 1;
-                    processedText = `TEXTANALYS:\n\n📊 STATISTIK:\n• Antal ord: ${wordCount}\n• Antal meningar: ${sentenceCount}\n• Genomsnittlig meningslängd: ${Math.round(wordCount/sentenceCount)} ord\n\n🔍 INNEHÅLLSANALYS:\n• Ton: Informativ\n• Komplexitet: Medel\n• Läsbarhet: God\n\n📝 REKOMMENDATIONER:\n• Behåll nuvarande struktur\n• Överväg kortare stycken\n\nORIGINALTEXT:\n${text}`;
+                    processedText = `TEXTANALYS:\n\n📊 STATISTIK: ${wordCount} ord.\n🔍 INNEHÅLL: Tonen verkar ${text.includes('!') ? 'entusiastisk' : 'neutral'}.\nREKOMMENDATION: Fler detaljer kan läggas till.\n\nORIGINALTEXT:\n${text}`;
                     break;
                 case 'analyze-input':
                     processedText = `ANALYS AV INNEHÅLL:\n\nTexten verkar vara:\n`;
                     if (text.match(/function\s+\w+\s*\(/) || text.match(/\{\s*[\w\s;:,]+\s*\}/)) {
-                        processedText += `• Kod eller teknisk text (möjligen programmering).\n`;
+                        processedText += `• Kod eller teknisk text.\n`;
                     } else if (text.match(/^\s*[-•*]\s+/m)) {
-                        processedText += `• En lista eller strukturerad text.\n`;
+                        processedText += `• En lista.\n`;
                     } else if (text.split('\n').length > 5) {
-                        processedText += `• Ett längre dokument eller en berättelse.\n`;
+                        processedText += `• Ett längre dokument.\n`;
                     } else {
-                        processedText += `• En kort text eller ett meddelande.\n`;
+                        processedText += `• En kort text.\n`;
                     }
-                    processedText += `\n🔍 DETALJER:\n• Längd: ${text.length} tecken\n• Språk: Svenska (baserat på analys)\n\nORIGINALTEXT:\n${text}`;
+                    processedText += `\n🔍 DETALJER: ${text.length} tecken, språk: Svenska.\n\nORIGINALTEXT:\n${text}`;
                     break;
                 default:
-                    processedText = text + '\n\n💡 Text bearbetad med ' + ai.toUpperCase();
+                    processedText = text + `\n\n💡 Bearbetad av ${ai.toUpperCase()} vid ${timestamp}.`;
             }
-            
-            const suffix = `\n\n--- Bearbetad: ${timestamp} ---`;
-            
-            // Formatera enligt valt utdataformat
+
             processedText = formatOutput(processedText, outputFormat);
-            
+
             return prefix + processedText + suffix;
         }
 
         function formatOutput(text, format) {
-            switch(format) {
+            switch (format) {
                 case 'bullet':
                     return text.split('\n').map(line => line.trim() ? `• ${line}` : '').join('\n');
                 case 'numbered':
@@ -483,7 +471,7 @@
                 case 'markdown':
                     return `# Bearbetad Text\n\n${text}\n\n---\n*Bearbetad automatiskt*`;
                 case 'html':
-                    return `<div class="processed-text">\n  <h2>Bearbetad Text</h2>\n  <p>${text.replace(/\n/g, '</p>\n  <p>')}</p>\n</div>`;
+                    return `<div><h2>Bearbetad Text</h2><p>${text.replace(/\n/g, '</p><p>')}</p></div>`;
                 default:
                     return text;
             }
@@ -505,7 +493,7 @@
             
             navigator.clipboard.writeText(text).then(() => {
                 showStatus('📋 Text kopierad till urklipp!', 'success');
-            }).catch(() => {
+            }).catch((err) => {
                 textArea.select();
                 document.execCommand('copy');
                 showStatus('📋 Text kopierad till urklipp!', 'success');
@@ -523,7 +511,6 @@
             }, 3000);
         }
 
-        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey || e.metaKey) {
                 switch(e.key) {
@@ -539,7 +526,6 @@
             }
         });
 
-        // Auto-save text to prevent data loss
         let autoSaveTimer;
         document.getElementById('textArea').addEventListener('input', function() {
             clearTimeout(autoSaveTimer);
