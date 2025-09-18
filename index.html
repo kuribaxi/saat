@@ -418,37 +418,46 @@
     <div class="settings-panel" id="settingsPanel">
         <h3>🔧 AI Inställningar & API-nycklar</h3>
         <div class="api-info">
-            <p><strong>💡 Skaffa gratis API-nycklar här:</strong></p>
+            <p><strong>⚠️ VIKTIGT - CORS Problem:</strong></p>
+            <p style="font-size: 12px; color: #e53e3e; margin-bottom: 15px;">
+                Webbläsare blockerar direkta API-anrop (CORS-policy). För produktion behöver du en backend-server.
+                <strong>Ollama fungerar bäst för lokala test!</strong>
+            </p>
+            <p><strong>💡 Rekommenderade lösningar:</strong></p>
+            <ul class="api-links">
+                <li><strong>🦙 Ollama (Bästa för test):</strong> <a href="https://ollama.ai" target="_blank">Ladda ned Ollama</a></li>
+                <li><strong>🔧 Backend proxy:</strong> Skapa Node.js/Python server</li>
+                <li><strong>🌐 CORS Proxy:</strong> <a href="https://cors-anywhere.herokuapp.com" target="_blank">cors-anywhere</a></li>
+                <li><strong>📱 Browser Extension:</strong> Installera CORS-disabled extension</li>
+            </ul>
+            <p><strong>🔗 API-nycklar (för när du har backend):</strong></p>
             <ul class="api-links">
                 <li><a href="https://platform.openai.com/api-keys" target="_blank">🤖 OpenAI API Key</a></li>
                 <li><a href="https://console.anthropic.com" target="_blank">🧠 Claude API Key</a></li>
                 <li><a href="https://makersuite.google.com/app/apikey" target="_blank">💎 Gemini API Key</a></li>
                 <li><a href="https://console.groq.com/keys" target="_blank">⚡ Groq API Key</a></li>
-                <li><a href="https://www.cohere.ai" target="_blank">🎯 Cohere API</a></li>
-                <li><a href="https://ollama.ai" target="_blank">🦙 Ollama (Lokalt)</a></li>
-                <li><a href="https://huggingface.co/settings/tokens" target="_blank">🤗 Hugging Face</a></li>
-                <li><a href="https://replicate.com" target="_blank">🔄 Replicate API</a></li>
             </ul>
         </div>
         <div class="api-config">
-            <label>🤖 OpenAI API Key (GPT-4):</label>
-            <input type="password" id="openaiKey" placeholder="sk-proj-... (gratis $5 kredit för nya konton)">
+            <label>🤖 OpenAI API Key:</label>
+            <input type="password" id="openaiKey" placeholder="sk-proj-... (kräver backend-proxy)">
             
-            <label>🧠 Claude API Key (Anthropic):</label>
-            <input type="password" id="claudeKey" placeholder="sk-ant-... (mycket bra för svenska)">
+            <label>🧠 Claude API Key:</label>
+            <input type="password" id="claudeKey" placeholder="sk-ant-... (kräver backend-proxy)">
             
-            <label>💎 Gemini API Key (Google):</label>
-            <input type="password" id="geminiKey" placeholder="AIza... (gratis 60 requests/minut)">
+            <label>💎 Gemini API Key:</label>
+            <input type="password" id="geminiKey" placeholder="AIza... (kräver backend-proxy)">
             
-            <label>⚡ Groq API Key (Snabb & Gratis):</label>
-            <input type="password" id="groqKey" placeholder="gsk_... (mycket snabb, gratis tier)">
+            <label>⚡ Groq API Key:</label>
+            <input type="password" id="groqKey" placeholder="gsk_... (kräver backend-proxy)">
             
-            <label>🦙 Ollama URL (Lokal AI):</label>
-            <input type="text" id="ollamaUrl" placeholder="http://localhost:11434" value="http://localhost:11434">
+            <label>🦙 Ollama URL (Fungerar direkt!):</label>
+            <input type="text" id="ollamaUrl" placeholder="http://localhost:11434" value="http://localhost:11434/api/generate">
         </div>
         <div class="settings-actions">
             <button class="btn" onclick="saveSettings()">💾 Spara</button>
             <button class="btn" onclick="testConnection()">🧪 Testa</button>
+            <button class="btn" onclick="setupOllama()">🦙 Ollama Guide</button>
             <button class="btn" onclick="toggleSettings()">✖️ Stäng</button>
         </div>
     </div>
@@ -648,15 +657,32 @@
             panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
         }
 
+        function setupOllama() {
+            alert(`🦙 OLLAMA SETUP GUIDE:
+
+1. Ladda ned Ollama från: https://ollama.ai
+2. Installera och starta Ollama
+3. Öppna terminal/kommandotolk
+4. Kör: ollama pull llama3.1
+5. Testa: ollama run llama3.1
+6. Använd URL: http://localhost:11434/api/generate
+
+Ollama fungerar lokalt utan internetanslutning och har inga CORS-problem!`);
+        }
+
         async function testConnection() {
-            const testPrompt = "Säg 'Hej' på svenska.";
+            const testPrompt = "Säg bara 'Hej!' på svenska.";
             
-            try {
-                showStatus('🧪 Testar anslutning...', 'success');
-                await callAI(testPrompt, selectedAI);
-                showStatus(`✅ ${selectedAI.toUpperCase()} fungerar!`, 'success');
-            } catch (error) {
-                showStatus(`❌ Test misslyckades: ${error.message}`, 'error');
+            if (selectedAI === 'ollama') {
+                try {
+                    showStatus('🧪 Testar Ollama-anslutning...', 'success');
+                    const result = await callOllama(testPrompt);
+                    showStatus(`✅ Ollama fungerar! Svar: ${result.substring(0, 50)}...`, 'success');
+                } catch (error) {
+                    showStatus(`❌ Ollama test misslyckades: ${error.message}`, 'error');
+                }
+            } else {
+                showStatus(`⚠️ ${selectedAI.toUpperCase()} kräver backend-proxy på grund av CORS-policy. Testa Ollama istället!`, 'error');
             }
         }
 
@@ -709,27 +735,41 @@
                 throw new Error('OpenAI API-nyckel saknas. Konfigurera i inställningar.');
             }
 
-            const response = await fetch(API_CONFIG.openai.baseUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${API_CONFIG.openai.key}`
-                },
-                body: JSON.stringify({
-                    model: API_CONFIG.openai.model,
-                    messages: [{ role: 'user', content: prompt }],
-                    max_tokens: 2000,
-                    temperature: 0.7
-                })
-            });
+            try {
+                const response = await fetch(API_CONFIG.openai.baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_CONFIG.openai.key}`
+                    },
+                    body: JSON.stringify({
+                        model: API_CONFIG.openai.model,
+                        messages: [{ role: 'user', content: prompt }],
+                        max_tokens: 2000,
+                        temperature: 0.7
+                    })
+                });
 
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(`OpenAI Error: ${error.error?.message || response.statusText}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorMsg;
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMsg = errorData.error?.message || errorText;
+                    } catch {
+                        errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+                    }
+                    throw new Error(`OpenAI Error: ${errorMsg}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                if (error.message.includes('CORS') || error.message.includes('fetch')) {
+                    throw new Error('CORS-fel: Denna sida kan inte ansluta direkt till OpenAI API. Använd en proxy-server eller backend-tjänst.');
+                }
+                throw error;
             }
-
-            const data = await response.json();
-            return data.choices[0].message.content;
         }
 
         async function callClaude(prompt) {
@@ -737,27 +777,41 @@
                 throw new Error('Claude API-nyckel saknas. Konfigurera i inställningar.');
             }
 
-            const response = await fetch(API_CONFIG.claude.baseUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': API_CONFIG.claude.key,
-                    'anthropic-version': '2023-06-01'
-                },
-                body: JSON.stringify({
-                    model: API_CONFIG.claude.model,
-                    max_tokens: 2000,
-                    messages: [{ role: 'user', content: prompt }]
-                })
-            });
+            try {
+                const response = await fetch(API_CONFIG.claude.baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_CONFIG.claude.key,
+                        'anthropic-version': '2023-06-01'
+                    },
+                    body: JSON.stringify({
+                        model: API_CONFIG.claude.model,
+                        max_tokens: 2000,
+                        messages: [{ role: 'user', content: prompt }]
+                    })
+                });
 
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(`Claude Error: ${error.error?.message || response.statusText}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorMsg;
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMsg = errorData.error?.message || errorText;
+                    } catch {
+                        errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+                    }
+                    throw new Error(`Claude Error: ${errorMsg}`);
+                }
+
+                const data = await response.json();
+                return data.content[0].text;
+            } catch (error) {
+                if (error.message.includes('CORS') || error.message.includes('fetch')) {
+                    throw new Error('CORS-fel: Denna sida kan inte ansluta direkt till Claude API. Använd en proxy-server eller backend-tjänst.');
+                }
+                throw error;
             }
-
-            const data = await response.json();
-            return data.content[0].text;
         }
 
         async function callGemini(prompt) {
@@ -804,4 +858,164 @@
             });
 
             if (!response.ok) {
-                const error = await
+                const error = await response.json().catch(() => ({}));
+                throw new Error(`Groq Error: ${error.error?.message || response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        async function callOllama(prompt) {
+            try {
+                const response = await fetch(API_CONFIG.ollama.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: API_CONFIG.ollama.model,
+                        prompt: prompt,
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ollama Error (${response.status}): Kontrollera att Ollama körs och är tillgänglig på ${API_CONFIG.ollama.url}`);
+                }
+
+                const data = await response.json();
+                if (!data.response) {
+                    throw new Error('Ollama returnerade inget svar. Kontrollera att modellen är laddad.');
+                }
+                return data.response;
+            } catch (error) {
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    throw new Error(`Ollama anslutning misslyckades. Kontrollera att:
+1. Ollama är installerat och körs
+2. URL:en är korrekt: ${API_CONFIG.ollama.url}
+3. Modellen '${API_CONFIG.ollama.model}' är nedladdad
+4. Ingen firewall blockerar port 11434`);
+                }
+                throw error;
+            }
+        }
+
+        function buildPrompt(text, action, fileType, outputFormat) {
+            const actionPrompts = {
+                'summarize': `Sammanfatta följande ${fileType} på svenska i ${outputFormat}-format:`,
+                'improve': `Förbättra och förfina följande ${fileType} på svenska. Returnera i ${outputFormat}-format:`,
+                'review': `Skriv en detaljerad remiss/granskning av följande ${fileType} på svenska i ${outputFormat}-format:`,
+                'simplify': `Förenkla följande ${fileType} så att det blir lättare att förstå. Svara på svenska i ${outputFormat}-format:`,
+                'translate': `Översätt följande ${fileType} till engelska och returnera i ${outputFormat}-format:`,
+                'expand': `Utvidga och utveckla följande ${fileType} med mer detaljer på svenska i ${outputFormat}-format:`,
+                'correct': `Korrigera grammatik, stavning och språkfel i följande ${fileType} på svenska i ${outputFormat}-format:`,
+                'analyze': `Analysera följande ${fileType} på svenska och returnera analysen i ${outputFormat}-format:`,
+                'analyze-input': `Analysera vad följande text är för typ av innehåll och beskriv det på svenska i ${outputFormat}-format:`
+            };
+
+            const formatInstructions = {
+                'bullet': 'Använd punktlista med • för varje punkt.',
+                'numbered': 'Använd numrerad lista (1., 2., 3., etc.).',
+                'table': 'Strukturera svaret som en markdowntabell.',
+                'code': 'Omge svaret med kodblock (```).',
+                'json': 'Returnera svaret som välformaterad JSON.',
+                'markdown': 'Använd Markdown-formatering.',
+                'html': 'Returnera svaret som HTML.',
+                'standard': 'Använd standardtext utan speciell formatering.'
+            };
+
+            return `${actionPrompts[action] || 'Bearbeta följande text:'}\n\n${formatInstructions[outputFormat] || ''}\n\n${text}`;
+        }
+
+        function getActionText(action) {
+            const actions = {
+                'summarize': 'Sammanfattar',
+                'improve': 'Förbättrar',
+                'review': 'Skriver remiss för',
+                'simplify': 'Förenklar',
+                'translate': 'Översätter',
+                'expand': 'Utvidgar',
+                'correct': 'Korrigerar',
+                'analyze': 'Analyserar',
+                'analyze-input': 'Analyserar innehållet i'
+            };
+            return actions[action] || 'Bearbetar';
+        }
+
+        function clearText() {
+            document.getElementById('textArea').value = '';
+            showStatus('🗑️ Text rensad!', 'success');
+        }
+
+        function copyToClipboard() {
+            const textArea = document.getElementById('textArea');
+            const text = textArea.value;
+            
+            if (!text.trim()) {
+                showStatus('⚠️ Ingen text att kopiera!', 'error');
+                return;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showStatus('📋 Text kopierad till urklipp!', 'success');
+            }).catch((err) => {
+                // Fallback for older browsers
+                textArea.select();
+                document.execCommand('copy');
+                showStatus('📋 Text kopierad till urklipp!', 'success');
+            });
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 4000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'Enter':
+                        if (e.target.id !== 'textArea') {
+                            e.preventDefault();
+                            processWithAI();
+                        }
+                        break;
+                    case 'l':
+                        e.preventDefault();
+                        clearText();
+                        break;
+                    case ',':
+                        e.preventDefault();
+                        toggleSettings();
+                        break;
+                }
+            }
+        });
+
+        // Auto-save functionality
+        let autoSaveTimer;
+        document.getElementById('textArea').addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                const text = this.value;
+                if (text.length > 0) {
+                    localStorage.setItem('autoSavedText', text);
+                }
+            }, 2000);
+        });
+
+        // Load auto-saved text on startup
+        window.addEventListener('load', function() {
+            const autoSaved = localStorage.getItem('autoSavedText');
+            if (autoSaved && confirm('Vill du återställa tidigare sparad text?')) {
+                document.getElementById('textArea').value = autoSaved;
+            }
+        });
