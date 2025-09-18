@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
+        .github-link {
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -197,7 +197,81 @@
             color: white;
         }
 
-        .github-link {
+        .settings-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .settings-panel h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .api-config {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .api-config label {
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .api-config input {
+            padding: 12px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            font-size: 14px;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+        }
+
+        .api-config input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .settings-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 999;
+        }
+
+        .settings-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
             position: fixed;
             top: 20px;
             right: 20px;
@@ -250,6 +324,29 @@
     </style>
 </head>
 <body>
+    <div class="settings-panel" id="settingsPanel">
+        <h3>🔧 AI Inställningar</h3>
+        <div class="api-config">
+            <label>OpenAI API Key:</label>
+            <input type="password" id="openaiKey" placeholder="sk-...">
+            
+            <label>Claude API Key:</label>
+            <input type="password" id="claudeKey" placeholder="sk-ant-...">
+            
+            <label>Gemini API Key:</label>
+            <input type="password" id="geminiKey" placeholder="AIza...">
+            
+            <label>Ollama URL:</label>
+            <input type="text" id="ollamaUrl" placeholder="http://localhost:11434" value="http://localhost:11434">
+            
+            <label>Hugging Face Token:</label>
+            <input type="password" id="hfToken" placeholder="hf_...">
+        </div>
+        <button class="btn" onclick="saveSettings()">💾 Spara Inställningar</button>
+        <button class="btn" onclick="toggleSettings()">✖️ Stäng</button>
+    </div>
+    
+    <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
     <a href="#" class="github-link">🚀 GitHub Tool</a>
     
     <div class="container">
@@ -262,7 +359,11 @@
             <div class="control-row">
                 <div class="dropdown">
                     <select id="aiModel">
-                        <option value="grok">⚡ Grok (xAI)</option>
+                        <option value="openai">🤖 OpenAI GPT</option>
+                        <option value="claude">🧠 Claude (Anthropic)</option>
+                        <option value="gemini">💎 Gemini (Google)</option>
+                        <option value="ollama">🦙 Ollama (Local)</option>
+                        <option value="huggingface">🤗 Hugging Face</option>
                     </select>
                 </div>
                 <div class="dropdown">
@@ -329,11 +430,56 @@
     </div>
 
     <script>
-        let selectedAI = 'grok';
+        // Global settings
+        const API_CONFIG = {
+            openai: { key: '', baseUrl: 'https://api.openai.com/v1' },
+            claude: { key: '', baseUrl: 'https://api.anthropic.com/v1' },
+            gemini: { key: '', baseUrl: 'https://generativelanguage.googleapis.com/v1beta' },
+            ollama: { url: 'http://localhost:11434' },
+            huggingface: { token: '', baseUrl: 'https://api-inference.huggingface.co/models' }
+        };
+
+        let selectedAI = 'openai';
         let selectedFileType = 'text';
         let selectedAction = 'summarize';
         let selectedOutputFormat = 'standard';
 
+        // Load saved settings
+        function loadSettings() {
+            const saved = localStorage.getItem('aiProcessorSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                Object.assign(API_CONFIG, settings);
+                
+                // Populate input fields
+                document.getElementById('openaiKey').value = API_CONFIG.openai.key || '';
+                document.getElementById('claudeKey').value = API_CONFIG.claude.key || '';
+                document.getElementById('geminiKey').value = API_CONFIG.gemini.key || '';
+                document.getElementById('ollamaUrl').value = API_CONFIG.ollama.url || 'http://localhost:11434';
+                document.getElementById('hfToken').value = API_CONFIG.huggingface.token || '';
+            }
+        }
+
+        // Save settings
+        function saveSettings() {
+            API_CONFIG.openai.key = document.getElementById('openaiKey').value;
+            API_CONFIG.claude.key = document.getElementById('claudeKey').value;
+            API_CONFIG.gemini.key = document.getElementById('geminiKey').value;
+            API_CONFIG.ollama.url = document.getElementById('ollamaUrl').value;
+            API_CONFIG.huggingface.token = document.getElementById('hfToken').value;
+            
+            localStorage.setItem('aiProcessorSettings', JSON.stringify(API_CONFIG));
+            showStatus('⚙️ Inställningar sparade!', 'success');
+            toggleSettings();
+        }
+
+        // Toggle settings panel
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.style.display = panel.style.display === 'none' || !panel.style.display ? 'block' : 'none';
+        }
+
+        // Event listeners
         document.getElementById('aiModel').addEventListener('change', function() {
             selectedAI = this.value;
             showStatus(`AI-modell ändrad till: ${this.options[this.selectedIndex].text}`, 'success');
@@ -354,6 +500,139 @@
             showStatus(`Utdataformat ändrat till: ${this.options[this.selectedIndex].text}`, 'success');
         });
 
+        // Real AI Processing Functions
+        async function callOpenAI(prompt) {
+            if (!API_CONFIG.openai.key) {
+                throw new Error('OpenAI API-nyckel saknas. Konfigurera i inställningar.');
+            }
+
+            const response = await fetch(`${API_CONFIG.openai.baseUrl}/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_CONFIG.openai.key}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [{ role: 'user', content: prompt }],
+                    max_tokens: 2000,
+                    temperature: 0.7
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`OpenAI Error: ${error.error?.message || 'Unknown error'}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        async function callClaude(prompt) {
+            if (!API_CONFIG.claude.key) {
+                throw new Error('Claude API-nyckel saknas. Konfigurera i inställningar.');
+            }
+
+            const response = await fetch(`${API_CONFIG.claude.baseUrl}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': API_CONFIG.claude.key,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify({
+                    model: 'claude-3-sonnet-20240229',
+                    max_tokens: 2000,
+                    messages: [{ role: 'user', content: prompt }]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`Claude Error: ${error.error?.message || 'Unknown error'}`);
+            }
+
+            const data = await response.json();
+            return data.content[0].text;
+        }
+
+        async function callGemini(prompt) {
+            if (!API_CONFIG.gemini.key) {
+                throw new Error('Gemini API-nyckel saknas. Konfigurera i inställningar.');
+            }
+
+            const response = await fetch(`${API_CONFIG.gemini.baseUrl}/models/gemini-pro:generateContent?key=${API_CONFIG.gemini.key}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`Gemini Error: ${error.error?.message || 'Unknown error'}`);
+            }
+
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        async function callOllama(prompt) {
+            try {
+                const response = await fetch(`${API_CONFIG.ollama.url}/api/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'llama2',
+                        prompt: prompt,
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ollama Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return data.response;
+            } catch (error) {
+                throw new Error(`Ollama anslutning misslyckades. Kontrollera att Ollama körs på ${API_CONFIG.ollama.url}`);
+            }
+        }
+
+        async function callHuggingFace(prompt) {
+            if (!API_CONFIG.huggingface.token) {
+                throw new Error('Hugging Face token saknas. Konfigurera i inställningar.');
+            }
+
+            const response = await fetch(`${API_CONFIG.huggingface.baseUrl}/microsoft/DialoGPT-medium`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${API_CONFIG.huggingface.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    inputs: prompt,
+                    parameters: { max_length: 1000 }
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`Hugging Face Error: ${error.error || 'Unknown error'}`);
+            }
+
+            const data = await response.json();
+            return data[0]?.generated_text || 'Ingen respons från modellen';
+        }
+
+        // Main AI processing function
         async function processWithAI() {
             const textArea = document.getElementById('textArea');
             const text = textArea.value.trim();
@@ -366,12 +645,67 @@
             showStatus(`🔄 ${getActionText(selectedAction)} text med ${selectedAI.toUpperCase()}...`, 'success');
 
             try {
-                const processedText = await processTextWithAI(text, selectedAI, selectedFileType, selectedAction, selectedOutputFormat);
-                textArea.value = processedText;
+                const prompt = buildPrompt(text, selectedAction, selectedFileType, selectedOutputFormat);
+                let processedText;
+
+                // Route to appropriate AI service
+                switch (selectedAI) {
+                    case 'openai':
+                        processedText = await callOpenAI(prompt);
+                        break;
+                    case 'claude':
+                        processedText = await callClaude(prompt);
+                        break;
+                    case 'gemini':
+                        processedText = await callGemini(prompt);
+                        break;
+                    case 'ollama':
+                        processedText = await callOllama(prompt);
+                        break;
+                    case 'huggingface':
+                        processedText = await callHuggingFace(prompt);
+                        break;
+                    default:
+                        throw new Error('Okänd AI-tjänst');
+                }
+
+                const timestamp = new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Stockholm' });
+                const finalText = `[Bearbetad med ${selectedAI.toUpperCase()} - ${timestamp}]\n\n${processedText}`;
+                
+                textArea.value = finalText;
                 showStatus('✅ Text bearbetad framgångsrikt!', 'success');
             } catch (error) {
+                console.error('AI Processing Error:', error);
                 showStatus(`❌ Fel vid bearbetning: ${error.message}`, 'error');
             }
+        }
+
+        // Build prompt based on action and file type
+        function buildPrompt(text, action, fileType, outputFormat) {
+            const actionPrompts = {
+                'summarize': `Sammanfatta följande ${fileType} på svenska i ${outputFormat}-format:`,
+                'improve': `Förbättra och förfina följande ${fileType} på svenska. Returnera i ${outputFormat}-format:`,
+                'review': `Skriv en detaljerad remiss/granskning av följande ${fileType} på svenska i ${outputFormat}-format:`,
+                'simplify': `Förenkla följande ${fileType} så att det blir lättare att förstå. Svara på svenska i ${outputFormat}-format:`,
+                'translate': `Översätt följande ${fileType} till engelska och returnera i ${outputFormat}-format:`,
+                'expand': `Utvidga och utveckla följande ${fileType} med mer detaljer på svenska i ${outputFormat}-format:`,
+                'correct': `Korrigera grammatik, stavning och språkfel i följande ${fileType} på svenska i ${outputFormat}-format:`,
+                'analyze': `Analysera följande ${fileType} på svenska och returnera analysen i ${outputFormat}-format:`,
+                'analyze-input': `Analysera vad följande text är för typ av innehåll och beskriv det på svenska i ${outputFormat}-format:`
+            };
+
+            const formatInstructions = {
+                'bullet': 'Använd punktlista med • för varje punkt.',
+                'numbered': 'Använd numrerad lista (1., 2., 3., etc.).',
+                'table': 'Strukturera svaret som en markdowntabell.',
+                'code': 'Omge svaret med kodblock (```).',
+                'json': 'Returnera svaret som välformaterad JSON.',
+                'markdown': 'Använd Markdown-formatering.',
+                'html': 'Returnera svaret som HTML.',
+                'standard': 'Använd standardtext utan speciell formatering.'
+            };
+
+            return `${actionPrompts[action] || 'Bearbeta följande text:'}\n\n${formatInstructions[outputFormat] || ''}\n\n${text}`;
         }
 
         function getActionText(action) {
@@ -389,76 +723,106 @@
             return actions[action] || 'Bearbetar';
         }
 
-        async function processTextWithAI(text, ai, fileType, action, outputFormat) {
-            const timestamp = new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Stockholm' });
-            const prefix = `[${getActionText(action)} med ${ai.toUpperCase()} - ${fileType.toUpperCase()} - ${outputFormat.toUpperCase()}]\n\n`;
-            const suffix = `\n\n--- Bearbetad: ${timestamp} ---`;
-
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            let processedText = text;
-
-            switch (action) {
-                case 'summarize':
-                    processedText = `SAMMANFATTNING:\n\nJag har analyserat texten och kan sammanfatta den så här: ${text.length > 100 ? text.substring(0, 100) + '...' : text}. Huvudpunkter kan inkludera nyckelord som ${text.split(' ').slice(0, 3).join(', ')}.\n\nSlutsats: Texten verkar fokusera på ${text.split(' ').slice(-3).join(' ')}.`;
-                    break;
-                case 'improve':
-                    processedText = text.replace(/\b(\w+)\b/g, (match) => match.charAt(0).toUpperCase() + match.slice(1)) + '\n\n💡 FÖRBÄTTRINGAR: Förbättrat stor bokstav på varje ord och strukturen kan optimeras ytterligare.';
-                    break;
-                case 'review':
-                    processedText = `REMISS AV DOKUMENT\n\nDatum: ${timestamp}\nGranskat av: ${ai.toUpperCase()}\n\nSAMMANFATTNING: Texten (${text.length} tecken) verkar vara ${text.split('\n').length} rader lång.\n\nKOMMENTARER: Innehållet är ${text.includes('fel') ? 'potentiellt problematiskt' : 'ok'}.\nREKOMMENDATION: Godkänn med granskning.\n\nORIGINALTEXT:\n${text}`;
-                    break;
-                case 'simplify':
-                    processedText = text.replace(/\b\w{8,}\b/g, (match) => match.substring(0, 4) + '...') + '\n\n🎯 FÖRENKLAD: Långa ord har förkortats för enklare läsning.';
-                    break;
-                case 'translate':
-                    processedText = `ÖVERSÄTTNING (Svenska → Engelska):\n\n${text.replace(/\b(\w+)\b/g, (match) => match.toLowerCase())}\n\nORIGINAL SVENSKA TEXT:\n${text}`;
-                    break;
-                case 'expand':
-                    processedText = text + '\n\n📈 UTVIDGAD: Jag har lagt till mer kontext: Texten kan utökas med exempel som ${text.split(' ').slice(0, 2).join(' och ')}.';
-                    break;
-                case 'correct':
-                    processedText = text.replace(/\b(fel|error|misstag)\b/gi, 'rätt') + '\n\n✏️ KORRIGERINGAR: Rättade eventuella fel.';
-                    break;
-                case 'analyze':
-                    const wordCount = text.split(' ').length;
-                    processedText = `TEXTANALYS:\n\n📊 STATISTIK: ${wordCount} ord.\n🔍 INNEHÅLL: Tonen verkar ${text.includes('!') ? 'entusiastisk' : 'neutral'}.\nREKOMMENDATION: Fler detaljer kan läggas till.\n\nORIGINALTEXT:\n${text}`;
-                    break;
-                case 'analyze-input':
-                    processedText = `ANALYS AV INNEHÅLL:\n\nTexten verkar vara:\n`;
-                    if (text.match(/function\s+\w+\s*\(/) || text.match(/\{\s*[\w\s;:,]+\s*\}/)) {
-                        processedText += `• Kod eller teknisk text.\n`;
-                    } else if (text.match(/^\s*[-•*]\s+/m)) {
-                        processedText += `• En lista.\n`;
-                    } else if (text.split('\n').length > 5) {
-                        processedText += `• Ett längre dokument.\n`;
-                    } else {
-                        processedText += `• En kort text.\n`;
-                    }
-                    processedText += `\n🔍 DETALJER: ${text.length} tecken, språk: Svenska.\n\nORIGINALTEXT:\n${text}`;
-                    break;
-                default:
-                    processedText = text + `\n\n💡 Bearbetad av ${ai.toUpperCase()} vid ${timestamp}.`;
-            }
-
-            processedText = formatOutput(processedText, outputFormat);
-
-            return prefix + processedText + suffix;
+        function clearText() {
+            document.getElementById('textArea').value = '';
+            showStatus('🗑️ Text rensad!', 'success');
         }
 
-        function formatOutput(text, format) {
-            switch (format) {
-                case 'bullet':
-                    return text.split('\n').map(line => line.trim() ? `• ${line}` : '').join('\n');
-                case 'numbered':
-                    let counter = 1;
-                    return text.split('\n').map(line => line.trim() ? `${counter++}. ${line}` : '').join('\n');
-                case 'table':
-                    const lines = text.split('\n').filter(line => line.trim());
-                    let table = '| Punkt | Innehåll |\n|-------|----------|\n';
-                    lines.forEach((line, i) => {
-                        table += `| ${i+1} | ${line} |\n`;
-                    });
+        function copyToClipboard() {
+            const textArea = document.getElementById('textArea');
+            const text = textArea.value;
+            
+            if (!text.trim()) {
+                showStatus('⚠️ Ingen text att kopiera!', 'error');
+                return;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showStatus('📋 Text kopierad till urklipp!', 'success');
+            }).catch((err) => {
+                textArea.select();
+                document.execCommand('copy');
+                showStatus('📋 Text kopierad till urklipp!', 'success');
+            });
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'Enter':
+                        e.preventDefault();
+                        processWithAI();
+                        break;
+                    case 'l':
+                        e.preventDefault();
+                        clearText();
+                        break;
+                    case ',':
+                        e.preventDefault();
+                        toggleSettings();
+                        break;
+                }
+            }
+        });
+
+        // Auto-save functionality
+        let autoSaveTimer;
+        document.getElementById('textArea').addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                const text = this.value;
+                if (text.length > 0) {
+                    localStorage.setItem('autoSavedText', text);
+                    console.log('Text auto-saved...');
+                }
+            }, 2000);
+        });
+
+        // Load auto-saved text on startup
+        window.addEventListener('load', function() {
+            loadSettings();
+            const autoSaved = localStorage.getItem('autoSavedText');
+            if (autoSaved && confirm('Vill du återställa tidigare sparad text?')) {
+                document.getElementById('textArea').value = autoSaved;
+            }
+        });
+
+        // File upload functionality
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('textArea').value = e.target.result;
+                showStatus(`📁 Fil "${file.name}" laddad!`, 'success');
+            };
+            reader.readAsText(file);
+        }
+
+        // Add file upload input
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.id = 'fileInput';
+            fileInput.style.display = 'none';
+            fileInput.accept = '.txt,.md,.json,.csv,.xml,.html';
+            fileInput.addEventListener('change', handleFileUpload);
+            document.body.appendChild(fileInput);
+        });
+    </script>    });
                     return table;
                 case 'code':
                     return '```\n' + text + '\n```';
