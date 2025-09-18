@@ -1,218 +1,544 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Analog + Digital Klocka med Alarm</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    html, body {
-      margin: 0; padding: 0;
-      background: #1c1c1c;
-      color: white;
-      font-family: Arial, sans-serif;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .clock {
-      position: relative;
-      width: 90vmin;
-      height: 90vmin;
-      border: 1vmin solid white;
-      border-radius: 50%;
-      background: radial-gradient(circle, #2c2c2c 60%, #1c1c1c);
-      box-shadow: 0 0 40px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .center {
-      position: absolute;
-      width: 2%;
-      height: 2%;
-      background: white;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      z-index: 10;
-    }
-    .hand {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform-origin: bottom;
-      transform: translate(-50%, -100%) rotate(90deg);
-      border-radius: 1vmin;
-    }
-    .hand.hour {
-      width: 1%;
-      height: 25%;
-      background: #4db8ff;
-      z-index: 3;
-    }
-    .hand.minute {
-      width: 0.8%;
-      height: 35%;
-      background: #80ffaa;
-      z-index: 4;
-    }
-    .hand.second {
-      width: 0.4%;
-      height: 45%;
-      background: #ff6666;
-      z-index: 5;
-    }
-    .number {
-      position: absolute;
-      color: white;
-      font-size: 4vmin;
-      font-weight: bold;
-      transform: translate(-50%, -50%);
-    }
-    .digital {
-      position: absolute;
-      top: 60%;
-      font-size: 5vmin;
-      font-weight: bold;
-      color: #ffffffcc;
-      user-select: none;
-      text-shadow: 0 0 5px #000;
-      letter-spacing: 0.1em;
-    }
-    .date-inside {
-      position: absolute;
-      top: 70%;
-      font-size: 3vmin;
-      color: #ffffffa0;
-      user-select: none;
-    }
-    .alarm-set {
-      margin-top: 2rem;
-      text-align: center;
-    }
-    input, button {
-      font-size: 1rem;
-      padding: 0.5rem;
-      margin: 0.3rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Text Processor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 800px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .text-area-container {
+            position: relative;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .text-area {
+            width: 100%;
+            min-height: 300px;
+            padding: 60px 20px 20px 20px;
+            border: none;
+            outline: none;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            background: #f8fafc;
+            color: #2d3748;
+            transition: all 0.3s ease;
+        }
+
+        .text-area:focus {
+            background: #ffffff;
+            box-shadow: inset 0 0 20px rgba(102, 126, 234, 0.1);
+        }
+
+        .dropdown {
+            position: absolute;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .dropdown:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .dropdown select {
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 12px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            min-width: 140px;
+        }
+
+        .ai-model-dropdown {
+            top: 15px;
+            left: 15px;
+        }
+
+        .file-type-dropdown {
+            top: 15px;
+            right: 15px;
+        }
+
+        .ai-action-dropdown {
+            bottom: 15px;
+            left: 15px;
+        }
+
+        .output-format-dropdown {
+            bottom: 15px;
+            right: 15px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status.success {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .status.error {
+            background: linear-gradient(45deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .github-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .github-link:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .text-area {
+                padding: 50px 15px 15px 15px;
+                min-height: 250px;
+            }
+            
+            .dropdown select {
+                min-width: 120px;
+                font-size: 13px;
+            }
+            
+            .actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <a href="#" class="github-link">🚀 GitHub Tool</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>AI Text Processor</h1>
+            <p>Välj AI-modell, filtyp, åtgärd och utdataformat, klistra in din text och bearbeta</p>
+        </div>
 
-  <div class="clock" id="clock">
-    <div class="center"></div>
+        <div class="text-area-container">
+            <div class="dropdown ai-model-dropdown">
+                <select id="aiModel">
+                    <option value="chatgpt">🤖 ChatGPT</option>
+                    <option value="claude">🧠 Claude</option>
+                    <option value="gemini">💎 Gemini</option>
+                    <option value="copilot">👨‍💻 Copilot</option>
+                    <option value="deepseek">🔍 DeepSeek</option>
+                    <option value="grok">⚡ Grok</option>
+                </select>
+            </div>
 
-    <div class="hand hour" id="hour-hand"></div>
-    <div class="hand minute" id="minute-hand"></div>
-    <div class="hand second" id="second-hand"></div>
+            <div class="dropdown file-type-dropdown">
+                <select id="fileType">
+                    <option value="text">📄 Text</option>
+                    <option value="image">🖼️ Bild</option>
+                    <option value="document">📋 Dokument</option>
+                    <option value="code">💻 Kod</option>
+                    <option value="json">📊 JSON</option>
+                    <option value="markdown">📝 Markdown</option>
+                </select>
+            </div>
 
-    <div class="digital" id="digital-time">00:00:00</div>
-    <div class="date-inside" id="date">00-00-0000</div>
-  </div>
+            <div class="dropdown ai-action-dropdown">
+                <select id="aiAction">
+                    <option value="summarize">📝 Sammanfatta</option>
+                    <option value="improve">✨ Förbättra</option>
+                    <option value="review">🔍 Skriva remiss</option>
+                    <option value="simplify">🎯 Förenkla</option>
+                    <option value="translate">🌍 Översätt</option>
+                    <option value="expand">📈 Utvidga</option>
+                    <option value="correct">✏️ Korrigera</option>
+                    <option value="analyze">📊 Analysera</option>
+                </select>
+            </div>
 
-  <div class="alarm-set">
-    <label for="alarm-time">Ställ in alarm:</label>
-    <input type="time" id="alarm-time" />
-    <button onclick="setAlarm()">Aktivera</button>
-    <button onclick="clearAlarm()">Avbryt</button>
-  </div>
+            <div class="dropdown output-format-dropdown">
+                <select id="outputFormat">
+                    <option value="standard">📄 Standard</option>
+                    <option value="bullet">• Punktlista</option>
+                    <option value="numbered">1. Numrerad</option>
+                    <option value="table">📊 Tabell</option>
+                    <option value="code">💻 Kodformat</option>
+                    <option value="json">🔧 JSON</option>
+                    <option value="markdown">📝 Markdown</option>
+                    <option value="html">🌐 HTML</option>
+                </select>
+            </div>
 
-  <!-- Annat alarmljud (lång, klar klockklang) -->
-  <audio id="alarm-sound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+            <textarea 
+                id="textArea" 
+                class="text-area" 
+                placeholder="Klistra in din text här...&#10;&#10;Kontroller:&#10;• Övre vänster: AI-modell&#10;• Övre höger: Filtyp&#10;• Nedre vänster: AI-åtgärd&#10;• Nedre höger: Utdataformat&#10;&#10;Tryck sedan på 'Bearbeta med AI' för att starta processen."
+            ></textarea>
+        </div>
 
-  <script>
-    const hourHand = document.getElementById("hour-hand");
-    const minuteHand = document.getElementById("minute-hand");
-    const secondHand = document.getElementById("second-hand");
-    const digitalTime = document.getElementById("digital-time");
-    const dateDisplay = document.getElementById("date");
-    const alarmSound = document.getElementById("alarm-sound");
+        <div class="actions">
+            <button class="btn" onclick="processWithAI()">
+                🚀 Bearbeta med AI
+            </button>
+            <button class="btn" onclick="clearText()">
+                🗑️ Rensa text
+            </button>
+            <button class="btn" onclick="copyToClipboard()">
+                📋 Kopiera text
+            </button>
+        </div>
 
-    const clock = document.getElementById("clock");
+        <div id="status" class="status"></div>
+    </div>
 
-    let alarmTime = null;
-    let alarmTriggered = false;
+    <script>
+        let selectedAI = 'chatgpt';
+        let selectedFileType = 'text';
+        let selectedAction = 'summarize';
+        let selectedOutputFormat = 'standard';
 
-    // Lägg till siffror 1–12 runt klockan
-    for(let i=1; i<=12; i++) {
-      const number = document.createElement("div");
-      number.classList.add("number");
-      const angle = (i * 30) * Math.PI / 180;
-      const radius = 42; // procent av klockans radie
-      number.style.left = 50 + radius * Math.sin(angle) + "%";
-      number.style.top = 50 - radius * Math.cos(angle) + "%";
-      number.textContent = i;
-      clock.appendChild(number);
-    }
+        document.getElementById('aiModel').addEventListener('change', function() {
+            selectedAI = this.value;
+            showStatus(`AI-modell ändrad till: ${this.options[this.selectedIndex].text}`, 'success');
+        });
 
-    function updateClock() {
-      const now = new Date();
+        document.getElementById('fileType').addEventListener('change', function() {
+            selectedFileType = this.value;
+            showStatus(`Filtyp ändrad till: ${this.options[this.selectedIndex].text}`, 'success');
+        });
 
-      const seconds = now.getSeconds();
-      const minutes = now.getMinutes();
-      const hours = now.getHours() % 12;
+        document.getElementById('aiAction').addEventListener('change', function() {
+            selectedAction = this.value;
+            showStatus(`AI-åtgärd ändrad till: ${this.options[this.selectedIndex].text}`, 'success');
+        });
 
-      // Rotera visare
-      const secDeg = seconds * 6;
-      const minDeg = minutes * 6 + seconds * 0.1;
-      const hourDeg = hours * 30 + minutes * 0.5;
+        document.getElementById('outputFormat').addEventListener('change', function() {
+            selectedOutputFormat = this.value;
+            showStatus(`Utdataformat ändrat till: ${this.options[this.selectedIndex].text}`, 'success');
+        });
 
-      secondHand.style.transform = `translate(-50%, -100%) rotate(${secDeg}deg)`;
-      minuteHand.style.transform = `translate(-50%, -100%) rotate(${minDeg}deg)`;
-      hourHand.style.transform = `translate(-50%, -100%) rotate(${hourDeg}deg)`;
+        function processWithAI() {
+            const textArea = document.getElementById('textArea');
+            const text = textArea.value.trim();
+            
+            if (!text) {
+                showStatus('⚠️ Vänligen skriv in eller klistra in text först!', 'error');
+                return;
+            }
 
-      // Digital tid hh:mm:ss
-      const hh = now.getHours().toString().padStart(2,"0");
-      const mm = minutes.toString().padStart(2,"0");
-      const ss = seconds.toString().padStart(2,"0");
-      digitalTime.textContent = `${hh}:${mm}:${ss}`;
-
-      // Datum dd-mm-yyyy
-      const day = now.getDate().toString().padStart(2,"0");
-      const month = (now.getMonth()+1).toString().padStart(2,"0");
-      const year = now.getFullYear();
-      dateDisplay.textContent = `${day}-${month}-${year}`;
-
-      // Alarmkontroll
-      if(alarmTime && !alarmTriggered) {
-        const currentTime = now.toTimeString().slice(0,5); // hh:mm
-        if(currentTime === alarmTime) {
-          alarmSound.play().catch(e => {
-            // Om ljudet inte spelas (t.ex mobil), visa tips
-            console.log("Ljud kunde inte spelas automatiskt, använd knapp för att tillåta ljud.");
-          });
-          alarmTriggered = true;
-          alert("⏰ Alarmet ringer!");
+            showStatus('🔄 ' + getActionText(selectedAction) + ' text med ' + document.getElementById('aiModel').options[document.getElementById('aiModel').selectedIndex].text + '...', 'success');
+            
+            // Simulera AI-bearbetning
+            setTimeout(() => {
+                const processedText = processText(text, selectedAI, selectedFileType, selectedAction, selectedOutputFormat);
+                textArea.value = processedText;
+                showStatus('✅ Text bearbetad framgångsrikt!', 'success');
+            }, 2000);
         }
-      }
-    }
 
-    setInterval(updateClock, 1000);
-    updateClock();
+        function getActionText(action) {
+            const actions = {
+                'summarize': 'Sammanfattar',
+                'improve': 'Förbättrar', 
+                'review': 'Skriver remiss för',
+                'simplify': 'Förenklar',
+                'translate': 'Översätter',
+                'expand': 'Utvidgar',
+                'correct': 'Korrigerar',
+                'analyze': 'Analyserar'
+            };
+            return actions[action] || 'Bearbetar';
+        }
 
-    function setAlarm() {
-      const timeInput = document.getElementById("alarm-time");
-      if(timeInput.value) {
-        alarmTime = timeInput.value;
-        alarmTriggered = false;
-        alert("Alarm ställt till " + alarmTime);
-      } else {
-        alert("Välj en tid för alarmet först!");
-      }
-    }
+        function processText(text, ai, fileType, action, outputFormat) {
+            const prefix = `[${getActionText(action)} med ${ai.toUpperCase()} - ${fileType.toUpperCase()} - ${outputFormat.toUpperCase()}]\n\n`;
+            const timestamp = new Date().toLocaleString('sv-SE');
+            
+            let processedText = text;
+            
+            // Simulera olika AI-åtgärder
+            switch(action) {
+                case 'summarize':
+                    processedText = `SAMMANFATTNING:\n\nDenna text handlar om ${text.substring(0, 50)}...\n\nHuvudpunkter:\n• Punkt 1\n• Punkt 2\n• Punkt 3\n\nSlutsats: ${text.split(' ').slice(-10).join(' ')}`;
+                    break;
+                case 'improve':
+                    processedText = text.replace(/\b(och|eller)\b/g, match => match.toUpperCase())
+                                      .replace(/\./g, '. ✓')
+                                      + '\n\n💡 FÖRBÄTTRINGAR GJORDA:\n• Förbättrad läsbarhet\n• Optimerad struktur\n• Klarare språk';
+                    break;
+                case 'review':
+                    processedText = `REMISS AV DOKUMENT\n\nDatum: ${timestamp}\nGranskat av: ${ai.toUpperCase()}\n\nSAMMENFATTNING:\n${text.substring(0, 100)}...\n\nKOMMENTARER:\n✓ Bra struktur och innehåll\n⚠️ Vissa förtydliganden behövs\n📝 Förslag på förbättringar finns\n\nREKOMMENDATION: Godkänn med mindre justeringar\n\nORIGINALTEXT:\n${text}`;
+                    break;
+                case 'simplify':
+                    processedText = text.replace(/\b\w{8,}\b/g, match => match.substring(0, 6) + '...')
+                                      .replace(/[.,;:]/g, '.')
+                                      + '\n\n🎯 FÖRENKLAD VERSION: Komplicerade ord och meningar har förenklats för bättre förståelse.';
+                    break;
+                case 'translate':
+                    processedText = `ÖVERSÄTTNING (Svenska → Engelska):\n\n[English translation would appear here]\n\nORIGINAL SVENSKA TEXT:\n${text}`;
+                    break;
+                case 'expand':
+                    processedText = text + '\n\n📈 UTVIDGAD VERSION:\n\nDetaljerade förklaringar:\n• Ytterligare kontext och bakgrund\n• Exempel och illustrationer\n• Fördjupad analys av ämnet\n• Relaterade aspekter och implikationer';
+                    break;
+                case 'correct':
+                    processedText = text.replace(/\b(fel|error|misstag)\b/gi, '✓ KORRIGERAT')
+                                      .replace(/\s+/g, ' ')
+                                      + '\n\n✏️ KORRIGERINGAR GJORDA:\n• Stavfel rättade\n• Grammatik justerad\n• Formatering förbättrad';
+                    break;
+                case 'analyze':
+                    const wordCount = text.split(' ').length;
+                    const sentenceCount = text.split(/[.!?]+/).length - 1;
+                    processedText = `TEXTANALYS:\n\n📊 STATISTIK:\n• Antal ord: ${wordCount}\n• Antal meningar: ${sentenceCount}\n• Genomsnittlig meningslängd: ${Math.round(wordCount/sentenceCount)} ord\n\n🔍 INNEHÅLLSANALYS:\n• Ton: Informativ\n• Komplexitet: Medel\n• Läsbarhet: God\n\n📝 REKOMMENDATIONER:\n• Behåll nuvarande struktur\n• Överväg kortare stycken\n\nORIGINALTEXT:\n${text}`;
+                    break;
+                default:
+                    processedText = text + '\n\n💡 Text bearbetad med ' + ai.toUpperCase();
+            }
+            
+            const suffix = `\n\n--- Bearbetad: ${timestamp} ---`;
+            
+            // Formatera enligt valt utdataformat
+            processedText = formatOutput(processedText, outputFormat);
+            
+            return prefix + processedText + suffix;
+        }
 
-    function clearAlarm() {
-      alarmTime = null;
-      alarmTriggered = false;
-      alert("Alarm avbrutet.");
-    }
-  </script>
+        function formatOutput(text, format) {
+            switch(format) {
+                case 'bullet':
+                    return text.split('\n').map(line => line.trim() ? `• ${line}` : '').join('\n');
+                case 'numbered':
+                    let counter = 1;
+                    return text.split('\n').map(line => line.trim() ? `${counter++}. ${line}` : '').join('\n');
+                case 'table':
+                    const lines = text.split('\n').filter(line => line.trim());
+                    let table = '| Punkt | Innehåll |\n|-------|----------|\n';
+                    lines.forEach((line, i) => {
+                        table += `| ${i+1} | ${line} |\n`;
+                    });
+                    return table;
+                case 'code':
+                    return '```\n' + text + '\n```';
+                case 'json':
+                    return JSON.stringify({
+                        content: text,
+                        processed_at: new Date().toISOString(),
+                        length: text.length
+                    }, null, 2);
+                case 'markdown':
+                    return `# Bearbetad Text\n\n${text}\n\n---\n*Bearbetad automatiskt*`;
+                case 'html':
+                    return `<div class="processed-text">\n  <h2>Bearbetad Text</h2>\n  <p>${text.replace(/\n/g, '</p>\n  <p>')}</p>\n</div>`;
+                default:
+                    return text;
+            }
+        }
+
+        function clearText() {
+            document.getElementById('textArea').value = '';
+            showStatus('🗑️ Text rensad!', 'success');
+        }
+
+        function copyToClipboard() {
+            const textArea = document.getElementById('textArea');
+            const text = textArea.value;
+            
+            if (!text.trim()) {
+                showStatus('⚠️ Ingen text att kopiera!', 'error');
+                return;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showStatus('📋 Text kopierad till urklipp!', 'success');
+            }).catch(() => {
+                // Fallback för äldre webbläsare
+                textArea.select();
+                document.execCommand('copy');
+                showStatus('📋 Text kopierad till urklipp!', 'success');
+            });
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'Enter':
+                        e.preventDefault();
+                        processWithAI();
+                        break;
+                    case 'l':
+                        e.preventDefault();
+                        clearText();
+                        break;
+                }
+            }
+        });
+
+        // Auto-save text to prevent data loss
+        let autoSaveTimer;
+        document.getElementById('textArea').addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                const text = this.value;
+                if (text.length > 0) {
+                    console.log('Auto-saving text...');
+                }
+            }, 2000);
+        });
+    </script>
 </body>
 </html>
