@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        .github-link {
+        }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -104,6 +104,7 @@
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
         .text-area {
@@ -124,6 +125,32 @@
         .text-area:focus {
             background: #ffffff;
             box-shadow: inset 0 0 20px rgba(102, 126, 234, 0.1);
+        }
+
+        .enter-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            z-index: 10;
+        }
+
+        .enter-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .enter-btn:active {
+            transform: scale(0.95);
         }
 
         .actions {
@@ -208,10 +235,12 @@
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
             padding: 30px;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             z-index: 1000;
             display: none;
             animation: slideIn 0.3s ease-out;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .settings-panel h3 {
@@ -221,6 +250,46 @@
             background: linear-gradient(45deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .api-info {
+            background: linear-gradient(135deg, #f0f8ff, #e6f3ff);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .api-info p {
+            margin: 0 0 10px 0;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .api-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .api-links li {
+            margin: 4px 0;
+        }
+
+        .api-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.2s ease;
+            display: block;
+        }
+
+        .api-links a:hover {
+            color: #764ba2;
+            text-decoration: underline;
         }
 
         .api-config {
@@ -234,6 +303,7 @@
             color: #4a5568;
             font-weight: 600;
             margin-bottom: 5px;
+            font-size: 14px;
         }
 
         .api-config input {
@@ -250,6 +320,18 @@
             border-color: #667eea;
             background: white;
             box-shadow: 0 0 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .settings-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .settings-actions .btn {
+            flex: 1;
+            min-width: 120px;
         }
 
         .settings-btn {
@@ -272,6 +354,8 @@
             background: rgba(0, 0, 0, 0.9);
             transform: scale(1.1);
         }
+
+        .github-link {
             position: fixed;
             top: 20px;
             right: 20px;
@@ -320,50 +404,70 @@
                 font-size: 12px;
                 padding: 10px 20px;
             }
+
+            .api-links {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="settings-panel" id="settingsPanel">
-        <h3>🔧 AI Inställningar</h3>
-        <div class="api-config">
-            <label>OpenAI API Key:</label>
-            <input type="password" id="openaiKey" placeholder="sk-...">
-            
-            <label>Claude API Key:</label>
-            <input type="password" id="claudeKey" placeholder="sk-ant-...">
-            
-            <label>Gemini API Key:</label>
-            <input type="password" id="geminiKey" placeholder="AIza...">
-            
-            <label>Ollama URL:</label>
-            <input type="text" id="ollamaUrl" placeholder="http://localhost:11434" value="http://localhost:11434">
-            
-            <label>Hugging Face Token:</label>
-            <input type="password" id="hfToken" placeholder="hf_...">
-        </div>
-        <button class="btn" onclick="saveSettings()">💾 Spara Inställningar</button>
-        <button class="btn" onclick="toggleSettings()">✖️ Stäng</button>
-    </div>
-    
     <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
-    <a href="#" class="github-link">🚀 GitHub Tool</a>
+    <a href="https://github.com" class="github-link" target="_blank">🚀 GitHub</a>
+    
+    <div class="settings-panel" id="settingsPanel">
+        <h3>🔧 AI Inställningar & API-nycklar</h3>
+        <div class="api-info">
+            <p><strong>💡 Skaffa gratis API-nycklar här:</strong></p>
+            <ul class="api-links">
+                <li><a href="https://platform.openai.com/api-keys" target="_blank">🤖 OpenAI API Key</a></li>
+                <li><a href="https://console.anthropic.com" target="_blank">🧠 Claude API Key</a></li>
+                <li><a href="https://makersuite.google.com/app/apikey" target="_blank">💎 Gemini API Key</a></li>
+                <li><a href="https://console.groq.com/keys" target="_blank">⚡ Groq API Key</a></li>
+                <li><a href="https://www.cohere.ai" target="_blank">🎯 Cohere API</a></li>
+                <li><a href="https://ollama.ai" target="_blank">🦙 Ollama (Lokalt)</a></li>
+                <li><a href="https://huggingface.co/settings/tokens" target="_blank">🤗 Hugging Face</a></li>
+                <li><a href="https://replicate.com" target="_blank">🔄 Replicate API</a></li>
+            </ul>
+        </div>
+        <div class="api-config">
+            <label>🤖 OpenAI API Key (GPT-4):</label>
+            <input type="password" id="openaiKey" placeholder="sk-proj-... (gratis $5 kredit för nya konton)">
+            
+            <label>🧠 Claude API Key (Anthropic):</label>
+            <input type="password" id="claudeKey" placeholder="sk-ant-... (mycket bra för svenska)">
+            
+            <label>💎 Gemini API Key (Google):</label>
+            <input type="password" id="geminiKey" placeholder="AIza... (gratis 60 requests/minut)">
+            
+            <label>⚡ Groq API Key (Snabb & Gratis):</label>
+            <input type="password" id="groqKey" placeholder="gsk_... (mycket snabb, gratis tier)">
+            
+            <label>🦙 Ollama URL (Lokal AI):</label>
+            <input type="text" id="ollamaUrl" placeholder="http://localhost:11434" value="http://localhost:11434">
+        </div>
+        <div class="settings-actions">
+            <button class="btn" onclick="saveSettings()">💾 Spara</button>
+            <button class="btn" onclick="testConnection()">🧪 Testa</button>
+            <button class="btn" onclick="toggleSettings()">✖️ Stäng</button>
+        </div>
+    </div>
     
     <div class="container">
         <div class="header">
             <h1>AI Text Processor</h1>
-            <p>Välj AI-modell, filtyp, åtgärd och utdataformat, klistra in din text och bearbeta</p>
+            <p>Välj AI-modell, filtyp, åtgärd och utdataformat - klistra sedan in din text och bearbeta</p>
         </div>
 
         <div class="controls">
             <div class="control-row">
                 <div class="dropdown">
                     <select id="aiModel">
-                        <option value="openai">🤖 OpenAI GPT</option>
-                        <option value="claude">🧠 Claude (Anthropic)</option>
-                        <option value="gemini">💎 Gemini (Google)</option>
-                        <option value="ollama">🦙 Ollama (Local)</option>
-                        <option value="huggingface">🤗 Hugging Face</option>
+                        <option value="openai">🤖 OpenAI GPT-4</option>
+                        <option value="claude">🧠 Claude 3.5 Sonnet</option>
+                        <option value="gemini">💎 Gemini Pro</option>
+                        <option value="groq">⚡ Groq Llama-3 (Snabb)</option>
+                        <option value="ollama">🦙 Ollama (Lokal)</option>
                     </select>
                 </div>
                 <div class="dropdown">
@@ -410,8 +514,11 @@
             <textarea 
                 id="textArea" 
                 class="text-area" 
-                placeholder=""
+                placeholder="Skriv eller klistra in din text här... Tryck Enter i textfältet eller Ctrl+Enter för att bearbeta med AI"
             ></textarea>
+            <button class="enter-btn" onclick="processWithAI()" title="Bearbeta med AI">
+                ➤
+            </button>
         </div>
 
         <div class="actions">
@@ -430,13 +537,31 @@
     </div>
 
     <script>
-        // Global settings
+        // API Configuration
         const API_CONFIG = {
-            openai: { key: '', baseUrl: 'https://api.openai.com/v1' },
-            claude: { key: '', baseUrl: 'https://api.anthropic.com/v1' },
-            gemini: { key: '', baseUrl: 'https://generativelanguage.googleapis.com/v1beta' },
-            ollama: { url: 'http://localhost:11434' },
-            huggingface: { token: '', baseUrl: 'https://api-inference.huggingface.co/models' }
+            openai: { 
+                key: '', 
+                baseUrl: 'https://api.openai.com/v1/chat/completions',
+                model: 'gpt-4-turbo-preview'
+            },
+            claude: { 
+                key: '', 
+                baseUrl: 'https://api.anthropic.com/v1/messages',
+                model: 'claude-3-5-sonnet-20241022'
+            },
+            gemini: { 
+                key: '', 
+                baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+            },
+            groq: {
+                key: '',
+                baseUrl: 'https://api.groq.com/openai/v1/chat/completions',
+                model: 'llama-3.1-70b-versatile'
+            },
+            ollama: { 
+                url: 'http://localhost:11434/api/generate',
+                model: 'llama3.1'
+            }
         };
 
         let selectedAI = 'openai';
@@ -444,76 +569,154 @@
         let selectedAction = 'summarize';
         let selectedOutputFormat = 'standard';
 
-        // Load saved settings
+        // Load settings on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            
+            // Event listeners for dropdowns
+            document.getElementById('aiModel').addEventListener('change', function() {
+                selectedAI = this.value;
+                showStatus(`AI-modell ändrad till: ${this.options[this.selectedIndex].text}`, 'success');
+            });
+
+            document.getElementById('fileType').addEventListener('change', function() {
+                selectedFileType = this.value;
+                showStatus(`Filtyp ändrad till: ${this.options[this.selectedIndex].text}`, 'success');
+            });
+
+            document.getElementById('aiAction').addEventListener('change', function() {
+                selectedAction = this.value;
+                showStatus(`AI-åtgärd ändrad till: ${this.options[this.selectedIndex].text}`, 'success');
+            });
+
+            document.getElementById('outputFormat').addEventListener('change', function() {
+                selectedOutputFormat = this.value;
+                showStatus(`Utdataformat ändrat till: ${this.options[this.selectedIndex].text}`, 'success');
+            });
+
+            // Enter key functionality in textarea
+            document.getElementById('textArea').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    processWithAI();
+                } else if (e.key === 'Enter' && !e.shiftKey) {
+                    // Allow Enter for new lines normally, but add option for quick processing
+                    // Uncomment next two lines if you want Enter alone to process
+                    // e.preventDefault();
+                    // processWithAI();
+                }
+            });
+        });
+
         function loadSettings() {
             const saved = localStorage.getItem('aiProcessorSettings');
             if (saved) {
-                const settings = JSON.parse(saved);
-                Object.assign(API_CONFIG, settings);
-                
-                // Populate input fields
-                document.getElementById('openaiKey').value = API_CONFIG.openai.key || '';
-                document.getElementById('claudeKey').value = API_CONFIG.claude.key || '';
-                document.getElementById('geminiKey').value = API_CONFIG.gemini.key || '';
-                document.getElementById('ollamaUrl').value = API_CONFIG.ollama.url || 'http://localhost:11434';
-                document.getElementById('hfToken').value = API_CONFIG.huggingface.token || '';
+                try {
+                    const settings = JSON.parse(saved);
+                    if (settings.openai) API_CONFIG.openai.key = settings.openai.key || '';
+                    if (settings.claude) API_CONFIG.claude.key = settings.claude.key || '';
+                    if (settings.gemini) API_CONFIG.gemini.key = settings.gemini.key || '';
+                    if (settings.groq) API_CONFIG.groq.key = settings.groq.key || '';
+                    if (settings.ollama) API_CONFIG.ollama.url = settings.ollama.url || 'http://localhost:11434/api/generate';
+                    
+                    // Update input fields
+                    document.getElementById('openaiKey').value = API_CONFIG.openai.key;
+                    document.getElementById('claudeKey').value = API_CONFIG.claude.key;
+                    document.getElementById('geminiKey').value = API_CONFIG.gemini.key;
+                    document.getElementById('groqKey').value = API_CONFIG.groq.key;
+                    document.getElementById('ollamaUrl').value = API_CONFIG.ollama.url;
+                } catch (e) {
+                    console.log('Error loading settings:', e);
+                }
             }
         }
 
-        // Save settings
         function saveSettings() {
-            API_CONFIG.openai.key = document.getElementById('openaiKey').value;
-            API_CONFIG.claude.key = document.getElementById('claudeKey').value;
-            API_CONFIG.gemini.key = document.getElementById('geminiKey').value;
-            API_CONFIG.ollama.url = document.getElementById('ollamaUrl').value;
-            API_CONFIG.huggingface.token = document.getElementById('hfToken').value;
+            API_CONFIG.openai.key = document.getElementById('openaiKey').value.trim();
+            API_CONFIG.claude.key = document.getElementById('claudeKey').value.trim();
+            API_CONFIG.gemini.key = document.getElementById('geminiKey').value.trim();
+            API_CONFIG.groq.key = document.getElementById('groqKey').value.trim();
+            API_CONFIG.ollama.url = document.getElementById('ollamaUrl').value.trim();
             
             localStorage.setItem('aiProcessorSettings', JSON.stringify(API_CONFIG));
             showStatus('⚙️ Inställningar sparade!', 'success');
-            toggleSettings();
+            setTimeout(() => toggleSettings(), 1000);
         }
 
-        // Toggle settings panel
         function toggleSettings() {
             const panel = document.getElementById('settingsPanel');
-            panel.style.display = panel.style.display === 'none' || !panel.style.display ? 'block' : 'none';
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
         }
 
-        // Event listeners
-        document.getElementById('aiModel').addEventListener('change', function() {
-            selectedAI = this.value;
-            showStatus(`AI-modell ändrad till: ${this.options[this.selectedIndex].text}`, 'success');
-        });
+        async function testConnection() {
+            const testPrompt = "Säg 'Hej' på svenska.";
+            
+            try {
+                showStatus('🧪 Testar anslutning...', 'success');
+                await callAI(testPrompt, selectedAI);
+                showStatus(`✅ ${selectedAI.toUpperCase()} fungerar!`, 'success');
+            } catch (error) {
+                showStatus(`❌ Test misslyckades: ${error.message}`, 'error');
+            }
+        }
 
-        document.getElementById('fileType').addEventListener('change', function() {
-            selectedFileType = this.value;
-            showStatus(`Filtyp ändrad till: ${this.options[this.selectedIndex].text}`, 'success');
-        });
+        async function processWithAI() {
+            const textArea = document.getElementById('textArea');
+            const text = textArea.value.trim();
+            
+            if (!text) {
+                showStatus('⚠️ Vänligen skriv in text först!', 'error');
+                return;
+            }
 
-        document.getElementById('aiAction').addEventListener('change', function() {
-            selectedAction = this.value;
-            showStatus(`AI-åtgärd ändrad till: ${this.options[this.selectedIndex].text}`, 'success');
-        });
+            const actionText = getActionText(selectedAction);
+            showStatus(`🔄 ${actionText} med ${selectedAI.toUpperCase()}...`, 'success');
 
-        document.getElementById('outputFormat').addEventListener('change', function() {
-            selectedOutputFormat = this.value;
-            showStatus(`Utdataformat ändrat till: ${this.options[this.selectedIndex].text}`, 'success');
-        });
+            try {
+                const prompt = buildPrompt(text, selectedAction, selectedFileType, selectedOutputFormat);
+                const processedText = await callAI(prompt, selectedAI);
+                
+                const timestamp = new Date().toLocaleString('sv-SE');
+                const result = `[Bearbetad med ${selectedAI.toUpperCase()} - ${timestamp}]\n\n${processedText}`;
+                
+                textArea.value = result;
+                showStatus('✅ Text bearbetad framgångsrikt!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`❌ Fel: ${error.message}`, 'error');
+            }
+        }
 
-        // Real AI Processing Functions
+        async function callAI(prompt, aiService) {
+            switch (aiService) {
+                case 'openai':
+                    return await callOpenAI(prompt);
+                case 'claude':
+                    return await callClaude(prompt);
+                case 'gemini':
+                    return await callGemini(prompt);
+                case 'groq':
+                    return await callGroq(prompt);
+                case 'ollama':
+                    return await callOllama(prompt);
+                default:
+                    throw new Error('Okänd AI-tjänst');
+            }
+        }
+
         async function callOpenAI(prompt) {
             if (!API_CONFIG.openai.key) {
                 throw new Error('OpenAI API-nyckel saknas. Konfigurera i inställningar.');
             }
 
-            const response = await fetch(`${API_CONFIG.openai.baseUrl}/chat/completions`, {
+            const response = await fetch(API_CONFIG.openai.baseUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${API_CONFIG.openai.key}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-3.5-turbo',
+                    model: API_CONFIG.openai.model,
                     messages: [{ role: 'user', content: prompt }],
                     max_tokens: 2000,
                     temperature: 0.7
@@ -521,8 +724,8 @@
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(`OpenAI Error: ${error.error?.message || 'Unknown error'}`);
+                const error = await response.json().catch(() => ({}));
+                throw new Error(`OpenAI Error: ${error.error?.message || response.statusText}`);
             }
 
             const data = await response.json();
@@ -534,7 +737,7 @@
                 throw new Error('Claude API-nyckel saknas. Konfigurera i inställningar.');
             }
 
-            const response = await fetch(`${API_CONFIG.claude.baseUrl}/messages`, {
+            const response = await fetch(API_CONFIG.claude.baseUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -542,15 +745,15 @@
                     'anthropic-version': '2023-06-01'
                 },
                 body: JSON.stringify({
-                    model: 'claude-3-sonnet-20240229',
+                    model: API_CONFIG.claude.model,
                     max_tokens: 2000,
                     messages: [{ role: 'user', content: prompt }]
                 })
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(`Claude Error: ${error.error?.message || 'Unknown error'}`);
+                const error = await response.json().catch(() => ({}));
+                throw new Error(`Claude Error: ${error.error?.message || response.statusText}`);
             }
 
             const data = await response.json();
@@ -562,7 +765,7 @@
                 throw new Error('Gemini API-nyckel saknas. Konfigurera i inställningar.');
             }
 
-            const response = await fetch(`${API_CONFIG.gemini.baseUrl}/models/gemini-pro:generateContent?key=${API_CONFIG.gemini.key}`, {
+            const response = await fetch(`${API_CONFIG.gemini.baseUrl}?key=${API_CONFIG.gemini.key}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -573,333 +776,32 @@
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(`Gemini Error: ${error.error?.message || 'Unknown error'}`);
+                const error = await response.json().catch(() => ({}));
+                throw new Error(`Gemini Error: ${error.error?.message || response.statusText}`);
             }
 
             const data = await response.json();
             return data.candidates[0].content.parts[0].text;
         }
 
-        async function callOllama(prompt) {
-            try {
-                const response = await fetch(`${API_CONFIG.ollama.url}/api/generate`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'llama2',
-                        prompt: prompt,
-                        stream: false
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Ollama Error: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                return data.response;
-            } catch (error) {
-                throw new Error(`Ollama anslutning misslyckades. Kontrollera att Ollama körs på ${API_CONFIG.ollama.url}`);
-            }
-        }
-
-        async function callHuggingFace(prompt) {
-            if (!API_CONFIG.huggingface.token) {
-                throw new Error('Hugging Face token saknas. Konfigurera i inställningar.');
+        async function callGroq(prompt) {
+            if (!API_CONFIG.groq.key) {
+                throw new Error('Groq API-nyckel saknas. Konfigurera i inställningar.');
             }
 
-            const response = await fetch(`${API_CONFIG.huggingface.baseUrl}/microsoft/DialoGPT-medium`, {
+            const response = await fetch(API_CONFIG.groq.baseUrl, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${API_CONFIG.huggingface.token}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_CONFIG.groq.key}`
                 },
                 body: JSON.stringify({
-                    inputs: prompt,
-                    parameters: { max_length: 1000 }
+                    model: API_CONFIG.groq.model,
+                    messages: [{ role: 'user', content: prompt }],
+                    max_tokens: 2000,
+                    temperature: 0.7
                 })
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(`Hugging Face Error: ${error.error || 'Unknown error'}`);
-            }
-
-            const data = await response.json();
-            return data[0]?.generated_text || 'Ingen respons från modellen';
-        }
-
-        // Main AI processing function
-        async function processWithAI() {
-            const textArea = document.getElementById('textArea');
-            const text = textArea.value.trim();
-            
-            if (!text) {
-                showStatus('⚠️ Vänligen skriv in eller klistra in text först!', 'error');
-                return;
-            }
-
-            showStatus(`🔄 ${getActionText(selectedAction)} text med ${selectedAI.toUpperCase()}...`, 'success');
-
-            try {
-                const prompt = buildPrompt(text, selectedAction, selectedFileType, selectedOutputFormat);
-                let processedText;
-
-                // Route to appropriate AI service
-                switch (selectedAI) {
-                    case 'openai':
-                        processedText = await callOpenAI(prompt);
-                        break;
-                    case 'claude':
-                        processedText = await callClaude(prompt);
-                        break;
-                    case 'gemini':
-                        processedText = await callGemini(prompt);
-                        break;
-                    case 'ollama':
-                        processedText = await callOllama(prompt);
-                        break;
-                    case 'huggingface':
-                        processedText = await callHuggingFace(prompt);
-                        break;
-                    default:
-                        throw new Error('Okänd AI-tjänst');
-                }
-
-                const timestamp = new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Stockholm' });
-                const finalText = `[Bearbetad med ${selectedAI.toUpperCase()} - ${timestamp}]\n\n${processedText}`;
-                
-                textArea.value = finalText;
-                showStatus('✅ Text bearbetad framgångsrikt!', 'success');
-            } catch (error) {
-                console.error('AI Processing Error:', error);
-                showStatus(`❌ Fel vid bearbetning: ${error.message}`, 'error');
-            }
-        }
-
-        // Build prompt based on action and file type
-        function buildPrompt(text, action, fileType, outputFormat) {
-            const actionPrompts = {
-                'summarize': `Sammanfatta följande ${fileType} på svenska i ${outputFormat}-format:`,
-                'improve': `Förbättra och förfina följande ${fileType} på svenska. Returnera i ${outputFormat}-format:`,
-                'review': `Skriv en detaljerad remiss/granskning av följande ${fileType} på svenska i ${outputFormat}-format:`,
-                'simplify': `Förenkla följande ${fileType} så att det blir lättare att förstå. Svara på svenska i ${outputFormat}-format:`,
-                'translate': `Översätt följande ${fileType} till engelska och returnera i ${outputFormat}-format:`,
-                'expand': `Utvidga och utveckla följande ${fileType} med mer detaljer på svenska i ${outputFormat}-format:`,
-                'correct': `Korrigera grammatik, stavning och språkfel i följande ${fileType} på svenska i ${outputFormat}-format:`,
-                'analyze': `Analysera följande ${fileType} på svenska och returnera analysen i ${outputFormat}-format:`,
-                'analyze-input': `Analysera vad följande text är för typ av innehåll och beskriv det på svenska i ${outputFormat}-format:`
-            };
-
-            const formatInstructions = {
-                'bullet': 'Använd punktlista med • för varje punkt.',
-                'numbered': 'Använd numrerad lista (1., 2., 3., etc.).',
-                'table': 'Strukturera svaret som en markdowntabell.',
-                'code': 'Omge svaret med kodblock (```).',
-                'json': 'Returnera svaret som välformaterad JSON.',
-                'markdown': 'Använd Markdown-formatering.',
-                'html': 'Returnera svaret som HTML.',
-                'standard': 'Använd standardtext utan speciell formatering.'
-            };
-
-            return `${actionPrompts[action] || 'Bearbeta följande text:'}\n\n${formatInstructions[outputFormat] || ''}\n\n${text}`;
-        }
-
-        function getActionText(action) {
-            const actions = {
-                'summarize': 'Sammanfattar',
-                'improve': 'Förbättrar',
-                'review': 'Skriver remiss för',
-                'simplify': 'Förenklar',
-                'translate': 'Översätter',
-                'expand': 'Utvidgar',
-                'correct': 'Korrigerar',
-                'analyze': 'Analyserar',
-                'analyze-input': 'Analyserar innehållet i'
-            };
-            return actions[action] || 'Bearbetar';
-        }
-
-        function clearText() {
-            document.getElementById('textArea').value = '';
-            showStatus('🗑️ Text rensad!', 'success');
-        }
-
-        function copyToClipboard() {
-            const textArea = document.getElementById('textArea');
-            const text = textArea.value;
-            
-            if (!text.trim()) {
-                showStatus('⚠️ Ingen text att kopiera!', 'error');
-                return;
-            }
-            
-            navigator.clipboard.writeText(text).then(() => {
-                showStatus('📋 Text kopierad till urklipp!', 'success');
-            }).catch((err) => {
-                textArea.select();
-                document.execCommand('copy');
-                showStatus('📋 Text kopierad till urklipp!', 'success');
-            });
-        }
-
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status ${type}`;
-            status.style.display = 'block';
-            
-            setTimeout(() => {
-                status.style.display = 'none';
-            }, 3000);
-        }
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'Enter':
-                        e.preventDefault();
-                        processWithAI();
-                        break;
-                    case 'l':
-                        e.preventDefault();
-                        clearText();
-                        break;
-                    case ',':
-                        e.preventDefault();
-                        toggleSettings();
-                        break;
-                }
-            }
-        });
-
-        // Auto-save functionality
-        let autoSaveTimer;
-        document.getElementById('textArea').addEventListener('input', function() {
-            clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(() => {
-                const text = this.value;
-                if (text.length > 0) {
-                    localStorage.setItem('autoSavedText', text);
-                    console.log('Text auto-saved...');
-                }
-            }, 2000);
-        });
-
-        // Load auto-saved text on startup
-        window.addEventListener('load', function() {
-            loadSettings();
-            const autoSaved = localStorage.getItem('autoSavedText');
-            if (autoSaved && confirm('Vill du återställa tidigare sparad text?')) {
-                document.getElementById('textArea').value = autoSaved;
-            }
-        });
-
-        // File upload functionality
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('textArea').value = e.target.result;
-                showStatus(`📁 Fil "${file.name}" laddad!`, 'success');
-            };
-            reader.readAsText(file);
-        }
-
-        // Add file upload input
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.id = 'fileInput';
-            fileInput.style.display = 'none';
-            fileInput.accept = '.txt,.md,.json,.csv,.xml,.html';
-            fileInput.addEventListener('change', handleFileUpload);
-            document.body.appendChild(fileInput);
-        });
-    </script>    });
-                    return table;
-                case 'code':
-                    return '```\n' + text + '\n```';
-                case 'json':
-                    return JSON.stringify({
-                        content: text,
-                        processed_at: new Date().toISOString(),
-                        length: text.length
-                    }, null, 2);
-                case 'markdown':
-                    return `# Bearbetad Text\n\n${text}\n\n---\n*Bearbetad automatiskt*`;
-                case 'html':
-                    return `<div><h2>Bearbetad Text</h2><p>${text.replace(/\n/g, '</p><p>')}</p></div>`;
-                default:
-                    return text;
-            }
-        }
-
-        function clearText() {
-            document.getElementById('textArea').value = '';
-            showStatus('🗑️ Text rensad!', 'success');
-        }
-
-        function copyToClipboard() {
-            const textArea = document.getElementById('textArea');
-            const text = textArea.value;
-            
-            if (!text.trim()) {
-                showStatus('⚠️ Ingen text att kopiera!', 'error');
-                return;
-            }
-            
-            navigator.clipboard.writeText(text).then(() => {
-                showStatus('📋 Text kopierad till urklipp!', 'success');
-            }).catch((err) => {
-                textArea.select();
-                document.execCommand('copy');
-                showStatus('📋 Text kopierad till urklipp!', 'success');
-            });
-        }
-
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status ${type}`;
-            status.style.display = 'block';
-            
-            setTimeout(() => {
-                status.style.display = 'none';
-            }, 3000);
-        }
-
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'Enter':
-                        e.preventDefault();
-                        processWithAI();
-                        break;
-                    case 'l':
-                        e.preventDefault();
-                        clearText();
-                        break;
-                }
-            }
-        });
-
-        let autoSaveTimer;
-        document.getElementById('textArea').addEventListener('input', function() {
-            clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(() => {
-                const text = this.value;
-                if (text.length > 0) {
-                    console.log('Auto-saving text...');
-                }
-            }, 2000);
-        });
-    </script>
-</body>
-</html>
+                const error = await
